@@ -1,0 +1,87 @@
+1. for router R1
+
+Router(config-if)#
+Router(config-if)#exit
+Router(config)#interface GigabitEthernet0/1
+Router(config-if)#
+Router(config-if)#exit
+Router(config)#interface GigabitEthernet0/0
+Router(config-if)#
+Router(config-if)#exit
+Router(config)#ip route 0.0.0.0 0.0.0.0 20.0.0.2
+Router(config)#
+Router#
+
+2. Do the same for router R2 just change the ip
+
+Router(config)#ip route 0.0.0.0 0.0.0.0 30.0.0.2
+
+3. Assigning the host name for each router.
+R0
+Router(config)#hostname R0
+R0(config)#
+
+R1
+Router(config)#hostname R1
+R1(config)#
+
+R2
+Router(config)#hostname R2
+R2(config)#
+
+4. Enabling the security packages at router R1 and R2
+R1
+R1(config)#exit
+R1#show version // to check the if security enable or not
+R1#configure terminal 
+R1(config)#license boot module c1900 technology-package securityk9 
+enter yes
+R1(config)#exit
+R1#copy run startup-config 
+R1#reload
+R1#show version
+
+Do the same for the router R2.
+
+5. Configure the access control list of router R1 and R2
+R1
+R1(config)#access-list 100 permit ip 192.168.1.0 0.0.0.255 192.168.2.0 0.0.0.255
+R1(config)#crypto isakmp policy 10
+R1(config-isakmp)#encryption aes 256
+R1(config-isakmp)#authentication pre-share
+R1(config-isakmp)#group 5
+R1(config-isakmp)#exit
+
+Setup isakmp key
+R1(config)#crypto isakmp key ismile address 30.0.0.1
+R1(config)#crypto ipsec transform-set R1->R2 esp-aes 256 esp-sha-hmac
+
+R2
+Do the same with router R2 just changing
+R2(config)#access-list 100 permit ip 192.168.2.0 0.0.0.255 192.168.1.0 0.0.0.255
+R2(config)#crypto isakmp key ismile address 20.0.0.1
+R2(config)#crypto ipsec transform-set R2->R1 esp-aes 256 esp-sha-hmac
+
+6. Creating the IPsec map10 on both the routers
+R1
+R1(config)#crypto map IPSEC-MAP 10 ipsec-isakmp 
+R1(config-crypto-map)#set peer 30.0.0.1
+R1(config-crypto-map)#set pfs group5
+R1(config-crypto-map)#set security-association lifetime seconds 86400
+R1(config-crypto-map)#set transform-set R1->R2
+R1(config-crypto-map)#match address 100
+R1(config-crypto-map)#exit
+R1(config)#interface g0/0
+R1(config-if)#crypto map IPSEC-MAP
+YOU WILL SEE SOMETHING LIKE THIS: 
+*Jan  3 07:16:26.785: %CRYPTO-6-ISAKMP_ON_OFF: ISAKMP is ON
+
+R2
+Do the same for R2 just changing
+R2(config-crypto-map)#set peer 20.0.0.1
+R2(config-crypto-map)#set transform-set R2->R1
+YOU WILL SEE SOMETHING LIKE THIS:
+*Jan  3 07:16:26.785: %CRYPTO-6-ISAKMP_ON_OFF: ISAKMP is ON
+
+7. verify the working of IPsec by pinging(ping) pc0->pc1
+
