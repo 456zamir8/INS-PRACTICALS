@@ -1,3 +1,6 @@
+'''Implement digital signature algorithm suc as RSA-based signatures, and verify the integrity 
+and authenticity of digitally signed messages'''
+
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
@@ -7,7 +10,7 @@ from colorama import init, Fore
 
 init(autoreset = True)
 
-# Generate RSA key pair (private and public)
+# private and public key generation
 keyPair = RSA.generate(2048)
 pubKey = keyPair.publickey()
 
@@ -25,7 +28,7 @@ print(privKeyPEM.decode('ascii'))
 message = b"hello zamir"
 
 # Simulate an altered message after signing
-altered_message = b"hello zamir how are you" 
+altered_message = b"hello zamir" 
 
 # Hash the message using SHA-256
 hash_msg = SHA256.new(message)
@@ -48,6 +51,7 @@ def verify_signature(pub_key, message, signature):
 # Simulate message integrity verification
 # (The receiver verifies the message using the public key)
 is_valid = verify_signature(pubKey, altered_message, signature)
+
 if is_valid:
     print(Fore.GREEN + "\nSignature is valid. The message is authentic and unaltered.")
 else:
